@@ -10,7 +10,6 @@ class Picture(object):
         self.direction = tokens[0]
         self.num_tags = tokens[1]
         self.tags = tokens[2:]
-        print self.tags
 
 def calc_score(first_picture, other_picture):
     score = len(set(first_picture.tags).intersection(set(other_picture.tags)))
@@ -28,25 +27,49 @@ def calc_scores():
             if i == j:
                 scores[i][j] = -1
                 continue
-            print 'calc %s %s' %(i, j)
             scores[i][j] = scores[j][i] = calc_score(pictures[i], pictures[j])
-    print scores
     return scores
+
+# def _calc_greedy_score(i, photo_order, scores, score):
+#     if numpy.max(scores[i]) < 0 :
+#         return photo_order, scores
+#         photo_order.append[]
+#         return photo_order, scores
+#
+# def find_largest_combo(remaining_photos, scores):
+#     if len(remaining_photos) == 1 :
+#         return remaining_photos[0]
+#             next_photo_id = numpy.argmax(temp_scores[i])
+
 
 def calc_greedy_score(i, scores):
     photo_order = [i]
     score = 0
-    row_scores = numpy.copy(scores[i])
+    temp_scores = numpy.copy(scores)
+    length = len(temp_scores[i])-1
     remaining_photos = set(range(len(pictures))) - set([i])
-    print 'debug', remaining_photos
-    while remaining_photos:
-        next_photo_id = numpy.argmax(row_scores)
-        score += row_scores[next_photo_id]
-        row_scores[next_photo_id] = -1
+
+    for j in range(length):
+        next_photo_id = numpy.argmax(temp_scores[i])
+        score += temp_scores[i][next_photo_id]
+        temp_scores[i][next_photo_id] = temp_scores[next_photo_id][i] = -1
         photo_order.append(next_photo_id)
         remaining_photos = remaining_photos - set([next_photo_id])
-        print 'debug', remaining_photos
+        i=next_photo_id
+        # photo_order, score = _calc_greedy_score(next_photo_id, photo_order,temp_scores, score)
 
+    #
+    #
+    # while remaining_photos:
+    #     next_photo_id = numpy.argmax(temp_scores[i])
+    #     score += temp_scores[next_photo_id]
+    #     print next_photo_id, temp_scores[next_photo_id]
+    #     temp_scores[i][next_photo_id] = temp_scores[next_photo_id][i] = -1
+    #     photo_order.append(next_photo_id)
+    #     remaining_photos = remaining_photos - set([next_photo_id])
+    #     photo_order, score = _calc_greedy_score(next_photo_id, photo_order,temp_scores, score)
+    #     print 'debug', remaining_photos
+    #     print photo_order, score
     return photo_order, score
 
 def find_permutation(scores):
@@ -54,9 +77,6 @@ def find_permutation(scores):
     photo_order = numpy.zeros((len(pictures), len(pictures)))
     for i in range(len(pictures)):
         photo_order[i], greedy_scores[i] = calc_greedy_score(i, scores)
-        print 'index %s: %s %s' %(i, photo_order[i], greedy_scores[i])
-    print 'scorfes' , greedy_scores
-    print 'photo_order', photo_order
     max_score_index = numpy.argmax(greedy_scores)
     return photo_order[max_score_index]
 
@@ -65,6 +85,6 @@ if __name__ == '__main__':
     load_data(input_path)
     scores = calc_scores()
     data = find_permutation(scores)
-    print data
+    output_data = str(len(data)) + '\n' + '\n'.join(str(int(i)) for i in data)
     with open('output_{}'.format(os.path.basename(input_path)), 'w') as f:
-        f.write(data)
+        f.write(output_data)
